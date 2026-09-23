@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ranking de Filmes</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0f1117;
+        --card: #181b24;
+        --card-hover: #202431;
+        --primary: #e50914;
+        --primary-hover: #f6121d;
+        --text: #f5f5f5;
+        --muted: #a8adbb;
+        --border: #2b3040;
+        --gold: #ffc107;
+        --green: #22c55e;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      header {
+        background: linear-gradient(135deg, #e50914, #8b0000);
+        padding: 35px 20px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      header h1 {
+        font-size: 36px;
+        margin-bottom: 8px;
+      }
+
+      header p {
+        color: #eee;
+        font-size: 16px;
+      }
+
+      .container {
+        width: min(1100px, 92%);
+        margin: 30px auto;
+      }
+
+      .form-card,
+      .filters-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 25px;
+        margin-bottom: 25px;
+      }
+
+      .section-title {
+        font-size: 21px;
+        margin-bottom: 20px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 14px;
+        align-items: end;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        background: #10131a;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        outline: none;
+        font-size: 14px;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--primary);
+      }
+
+      button {
+        border: none;
+        border-radius: 8px;
+        padding: 12px 18px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+      }
+
+      .btn-delete {
+        background: #3a1b20;
+        color: #ff7b85;
+        padding: 8px 12px;
+      }
+
+      .btn-delete:hover {
+        background: #5a2028;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 14px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .stat {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 30px;
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .ranking {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .movie {
+        display: grid;
+        grid-template-columns: 70px 1fr auto;
+        gap: 20px;
+        align-items: center;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        transition: 0.2s;
+      }
+
+      .movie:hover {
+        background: var(--card-hover);
+        transform: translateX(2px);
+      }
+
+      .position {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+        background: #252a36;
+      }
+
+      .position.first {
+        background: var(--gold);
+        color: #111;
+      }
+
+      .position.second {
+        background: #c0c0c0;
+        color: #111;
+      }
+
+      .position.third {
+        background: #cd7f32;
+        color: #111;
+      }
+
+      .movie-info h3 {
+        font-size: 19px;
+        margin-bottom: 7px;
+      }
+
+      .movie-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .tag {
+        background: #272c39;
+        border-radius: 20px;
+        padding: 5px 9px;
+      }
+
+      .rating {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        min-width: 70px;
+      }
+
+      .rating-value {
+        font-size: 25px;
+        font-weight: bold;
+        color: var(--green);
+      }
+
+      .rating-label {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .movie-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 50px 20px;
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+      }
+
+      .empty-icon {
+        font-size: 45px;
+        margin-bottom: 15px;
+      }
+
+      @media (max-width: 850px) {
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .form-grid .field:first-child {
+          grid-column: span 2;
+        }
+
+        .filters {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 600px) {
+        header h1 {
+          font-size: 28px;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .form-grid .field:first-child {
+          grid-column: span 1;
+        }
+
+        .movie {
+          grid-template-columns: 55px 1fr;
+        }
+
+        .movie-actions {
+          grid-column: span 2;
+          justify-content: space-between;
+        }
+
+        .rating {
+          flex-direction: row;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>🎬 Ranking de Filmes</h1>
+      <p>Cadastre seus filmes favoritos e monte seu próprio ranking</p>
+    </header>
+
+    <main class="container">
+      <!-- FORMULÁRIO -->
+      <section class="form-card">
+        <h2 class="section-title">➕ Cadastrar filme</h2>
+
+        <form id="movieForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="title">Título do filme</label>
+              <input
+                type="text"
+                id="title"
+                placeholder="Ex.: Interestelar"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="genre">Tipo / Gênero</label>
+              <select id="genre" required>
+                <option value="">Selecione</option>
+                <option value="Ação">Ação</option>
+                <option value="Animação">Animação</option>
+                <option value="Aventura">Aventura</option>
+                <option value="Comédia">Comédia</option>
+                <option value="Drama">Drama</option>
+                <option value="Ficção Científica">Ficção Científica</option>
+                <option value="Fantasia">Fantasia</option>
+                <option value="Horror">Horror</option>
+                <option value="Romance">Romance</option>
+                <option value="Suspense">Suspense</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="year">Ano</label>
+              <input
+                type="number"
+                id="year"
+                min="1888"
+                max="2100"
+                placeholder="2026"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="rating">Nota</label>
+              <input
+                type="number"
+                id="rating"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="8.5"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn-primary">Adicionar</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ESTATÍSTICAS -->
+      <section class="stats">
+        <div class="stat">
+          <div class="stat-number" id="totalMovies">0</div>
+          <div class="stat-label">Filmes cadastrados</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number" id="averageRating">0.0</div>
+          <div class="stat-label">Nota média</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-number" id="bestRating">0.0</div>
+          <div class="stat-label">Maior nota</div>
+        </div>
+      </section>
+
+      <!-- FILTROS -->
+      <section class="filters-card">
+        <h2 class="section-title">🔎 Filtros e ordenação</h2>
+
+        <div class="filters">
+          <div class="field">
+            <label for="search">Pesquisar</label>
+            <input
+              type="text"
+              id="search"
+              placeholder="Digite o nome do filme..."
+            />
+          </div>
+
+          <div class="field">
+            <label for="filterGenre">Tipo / Gênero</label>
+            <select id="filterGenre">
+              <option value="Todos">Todos os tipos</option>
+              <option value="Ação">Ação</option>
+              <option value="Animação">Animação</option>
+              <option value="Aventura">Aventura</option>
+              <option value="Comédia">Comédia</option>
+              <option value="Drama">Drama</option>
+              <option value="Ficção Científica">Ficção Científica</option>
+              <option value="Fantasia">Fantasia</option>
+              <option value="Horror">Horror</option>
+              <option value="Romance">Romance</option>
+              <option value="Suspense">Suspense</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="sort">Ordenar por</label>
+            <select id="sort">
+              <option value="ratingDesc">Nota: maior → menor</option>
+              <option value="ratingAsc">Nota: menor → maior</option>
+              <option value="titleAsc">Título: A → Z</option>
+              <option value="titleDesc">Título: Z → A</option>
+              <option value="yearDesc">Ano: mais recente</option>
+              <option value="yearAsc">Ano: mais antigo</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- RANKING -->
+      <section>
+        <h2 class="section-title">🏆 Ranking</h2>
+
+        <div id="ranking" class="ranking"></div>
+      </section>
+    </main>
+
+    <script>
+      const movieForm = document.getElementById('movieForm');
+      const ranking = document.getElementById('ranking');
+
+      const titleInput = document.getElementById('title');
+      const genreInput = document.getElementById('genre');
+      const yearInput = document.getElementById('year');
+      const ratingInput = document.getElementById('rating');
+
+      const searchInput = document.getElementById('search');
+      const filterGenre = document.getElementById('filterGenre');
+      const sortSelect = document.getElementById('sort');
+
+      const totalMovies = document.getElementById('totalMovies');
+      const averageRating = document.getElementById('averageRating');
+      const bestRating = document.getElementById('bestRating');
+
+      let movies = JSON.parse(localStorage.getItem('movies')) || [];
+
+      function saveMovies() {
+        localStorage.setItem('movies', JSON.stringify(movies));
+      }
+
+      function generateId() {
+        return Date.now() + Math.floor(Math.random() * 1000);
+      }
+
+      movieForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const title = titleInput.value.trim();
+        const genre = genreInput.value;
+        const year = Number(yearInput.value);
+        const rating = Number(ratingInput.value);
+
+        if (!title || !genre || !year || rating < 0 || rating > 10) {
+          alert('Preencha todos os campos corretamente.');
+          return;
+        }
+
+        const movie = {
+          id: generateId(),
+          title,
+          genre,
+          year,
+          rating,
+        };
+
+        movies.push(movie);
+
+        saveMovies();
+
+        movieForm.reset();
+
+        renderMovies();
+      });
+
+      function deleteMovie(id) {
+        const movie = movies.find((movie) => movie.id === id);
+
+        if (!movie) return;
+
+        const confirmed = confirm(`Deseja excluir "${movie.title}"?`);
+
+        if (!confirmed) return;
+
+        movies = movies.filter((movie) => movie.id !== id);
+
+        saveMovies();
+        renderMovies();
+      }
+
+      function getFilteredMovies() {
+        const search = searchInput.value.toLowerCase().trim();
+
+        const selectedGenre = filterGenre.value;
+        const sort = sortSelect.value;
+
+        let result = movies.filter((movie) => {
+          const matchesSearch = movie.title.toLowerCase().includes(search);
+
+          const matchesGenre =
+            selectedGenre === 'Todos' || movie.genre === selectedGenre;
+
+          return matchesSearch && matchesGenre;
+        });
+
+        result.sort((a, b) => {
+          switch (sort) {
+            case 'ratingAsc':
+              return a.rating - b.rating;
+
+            case 'ratingDesc':
+              return b.rating - a.rating;
+
+            case 'titleAsc':
+              return a.title.localeCompare(b.title);
+
+            case 'titleDesc':
+              return b.title.localeCompare(a.title);
+
+            case 'yearAsc':
+              return a.year - b.year;
+
+            case 'yearDesc':
+              return b.year - a.year;
+
+            default:
+              return b.rating - a.rating;
+          }
+        });
+
+        return result;
+      }
+
+      function getPositionClass(position) {
+        if (position === 1) return 'first';
+        if (position === 2) return 'second';
+        if (position === 3) return 'third';
+
+        return '';
+      }
+
+      function renderMovies() {
+        const filteredMovies = getFilteredMovies();
+
+        updateStats();
+
+        if (filteredMovies.length === 0) {
+          ranking.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">🎬</div>
+            <h3>Nenhum filme encontrado</h3>
+            <p>Cadastre um filme ou altere os filtros.</p>
+          </div>
+        `;
+
+          return;
+        }
+
+        ranking.innerHTML = '';
+
+        filteredMovies.forEach((movie, index) => {
+          const position = index + 1;
+
+          const article = document.createElement('article');
+
+          article.className = 'movie';
+
+          article.innerHTML = `
+          <div class="position ${getPositionClass(position)}">
+            ${position}
+          </div>
+
+          <div class="movie-info">
+
+            <h3>${escapeHTML(movie.title)}</h3>
+
+            <div class="movie-meta">
+              <span class="tag">${escapeHTML(movie.genre)}</span>
+              <span class="tag">📅 ${movie.year}</span>
+            </div>
+
+          </div>
+
+          <div class="movie-actions">
+
+            <div class="rating">
+              <span class="rating-value">
+                ${movie.rating.toFixed(1)}
+              </span>
+
+              <span class="rating-label">
+                / 10
+              </span>
+            </div>
+
+            <button
+              class="btn-delete"
+              onclick="deleteMovie(${movie.id})"
+            >
+              🗑️
+            </button>
+
+          </div>
+        `;
+
+          ranking.appendChild(article);
+        });
+      }
+
+      function updateStats() {
+        totalMovies.textContent = movies.length;
+
+        if (movies.length === 0) {
+          averageRating.textContent = '0.0';
+          bestRating.textContent = '0.0';
+          return;
+        }
+
+        const total = movies.reduce((sum, movie) => sum + movie.rating, 0);
+
+        const average = total / movies.length;
+
+        const best = Math.max(...movies.map((movie) => movie.rating));
+
+        averageRating.textContent = average.toFixed(1);
+        bestRating.textContent = best.toFixed(1);
+      }
+
+      function escapeHTML(text) {
+        const div = document.createElement('div');
+
+        div.textContent = text;
+
+        return div.innerHTML;
+      }
+
+      searchInput.addEventListener('input', renderMovies);
+      filterGenre.addEventListener('change', renderMovies);
+      sortSelect.addEventListener('change', renderMovies);
+
+      renderMovies();
+    </script>
+  </body>
+</html>
